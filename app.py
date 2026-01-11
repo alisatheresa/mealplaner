@@ -84,13 +84,19 @@ st.subheader(f"🥘 Vorgeschlagenes Gericht: {gericht['name']}")
 # --------------------
 # MENGE BERECHNEN & EINKAUFSLISTE ERSTELLEN
 # --------------------
+# --------------------
+# MENGE BERECHNEN & EINKAUFSLISTE ERSTELLEN
+# --------------------
 if gericht["typ"] == "fix":  # feste Zutaten
     for zutat, (einheit, menge_pp) in gericht["zutaten"].items():
         add_zutat(zutat, einheit, menge_pp * personen)
-else:  # modulare Zutaten: alle Module automatisch auswählen
-    # Für den Zufallsvorschlag: wir wählen pro Kategorie automatisch alles
+else:  # modulare Zutaten
+    st.write("Wähle Zutaten aus den Modulen:")
     for kategorie, zutaten in gericht["module"].items():
-        for zutat, (einheit, menge_pp) in zutaten.items():
+        # Multi-Select für jede Kategorie
+        auswahl = st.multiselect(kategorie, zutaten.keys())
+        for zutat in auswahl:
+            einheit, menge_pp = zutaten[zutat]
             add_zutat(zutat, einheit, menge_pp * personen)
 
 # --------------------
