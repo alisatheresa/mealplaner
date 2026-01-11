@@ -84,9 +84,6 @@ st.subheader(f"🥘 Vorgeschlagenes Gericht: {gericht['name']}")
 # --------------------
 # MENGE BERECHNEN & EINKAUFSLISTE ERSTELLEN
 # --------------------
-# --------------------
-# MENGE BERECHNEN & EINKAUFSLISTE ERSTELLEN
-# --------------------
 if gericht["typ"] == "fix":
     # feste Zutaten immer hinzufügen
     for zutat, (einheit, menge_pp) in gericht["zutaten"].items():
