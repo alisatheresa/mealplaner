@@ -87,17 +87,36 @@ st.subheader(f"🥘 Vorgeschlagenes Gericht: {gericht['name']}")
 # --------------------
 # MENGE BERECHNEN & EINKAUFSLISTE ERSTELLEN
 # --------------------
-if gericht["typ"] == "fix":  # feste Zutaten
+if gericht["typ"] == "fix":
+    # feste Zutaten immer hinzufügen
     for zutat, (einheit, menge_pp) in gericht["zutaten"].items():
         add_zutat(zutat, einheit, menge_pp * personen)
-else:  # modulare Zutaten
-    st.write("Wähle Zutaten aus den Modulen:")
-    for kategorie, zutaten in gericht["module"].items():
-        # Multi-Select für jede Kategorie
-        auswahl = st.multiselect(kategorie, zutaten.keys())
+else:
+    st.write("Zutaten für dieses modulare Gericht (zufällig ausgewählt):")
+    # feste Zutaten immer hinzufügen
+    for zutat, (einheit, menge_pp) in gericht["feste_zutaten"].items():
+        add_zutat(zutat, einheit, menge_pp * personen)
+    
+    # variable Zutaten: intelligente Zufallsauswahl
+    for kategorie, zutaten in gericht["variable_zutaten"].items():
+        # Anzahl der auszuwählenden Zutaten pro Kategorie festlegen
+        if kategorie == "Protein":
+            anzahl = 1  # 1 Protein
+        elif kategorie == "Gemüse":
+            anzahl = min(2, len(zutaten))  # max 2 Gemüse
+        elif kategorie == "Sauce":
+            anzahl = 1  # 1 Sauce
+        else:
+            anzahl = 1  # Default
+        
+        # zufällige Auswahl treffen
+        auswahl = random.sample(list(zutaten.keys()), k=anzahl)
+        
         for zutat in auswahl:
             einheit, menge_pp = zutaten[zutat]
             add_zutat(zutat, einheit, menge_pp * personen)
+        
+        st.write(f"{kategorie}: {', '.join(auswahl)}")  # Anzeige der ausgewählten Zutaten
 
 # --------------------
 # AUSGABE: Einkaufsliste
