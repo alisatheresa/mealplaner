@@ -1,72 +1,101 @@
-import streamlit as st  # Streamlit importieren, um UI-Elemente zu erstellen
+import streamlit as st # Streamlit importieren, um UI-Elemente zu erstellen
+import random
+
 
 st.title("Persönlicher Kochplaner 🍽️")  # Titel der App im Browser anzeigen
 
 # --------------------
-# DATEN: Feste & modulare Gerichte
+# DATEN: Gerichte
 # --------------------
-FIXE_GERICHTE = {
-    "Linsen Bolognese": {  # Gerichtname
-        "Linsen": ("g", 80),  # Zutat: Einheit + Menge pro Person
-        "Passierte Tomaten": ("ml", 200),
-        "Zwiebel": ("Stk", 0.5),
-        "Knoblauch": ("Zehe", 1),
-        "Spaghetti": ("g", 100),
+
+GERICHTE = [
+    {
+        "name": "Linsen Bolognese",
+        "typ": "fix",  # fix = feste Zutaten
+        "kategorie": ["ganzjährig"],  # Saison / Kategorie
+        "zutaten": {
+            "Linsen": ("g", 80),
+            "Passierte Tomaten": ("ml", 200),
+            "Zwiebel": ("Stk", 0.5),
+            "Knoblauch": ("Zehe", 1),
+            "Spaghetti": ("g", 100)
+        }
+    },
+    {
+        "name": "Wraps",
+        "typ": "modular",  # modular = Zutaten aus Auswahl
+        "kategorie": ["ganzjährig", "sommer"],
+        "module": {
+            "Basis": {"Wrap": ("Stk", 2)},
+            "Protein": {"Falafel": ("g", 100), "Hähnchen": ("g", 120), "Tofu": ("g", 100)},
+            "Gemüse": {"Paprika": ("Stk", 0.5), "Salat": ("g", 50), "Gurke": ("Stk", 0.25)},
+            "Sauce": {"Hummus": ("g", 40), "Joghurt-Sauce": ("ml", 50)}
+        }
+    },
+    {
+        "name": "Asia Nudelpfanne",
+        "typ": "modular",
+        "kategorie": ["ganzjährig", "winter"],
+        "module": {
+            "Basis": {"Reisnudeln": ("g", 100)},
+            "Protein": {"Tofu": ("g", 120), "Huhn": ("g", 120)},
+            "Gemüse": {"Brokkoli": ("g", 100), "Karotten": ("g", 80)},
+            "Sauce": {"Sojasauce": ("ml", 30), "Erdnusssauce": ("ml", 30)}
+        }
     }
-}
-
-MODULARE_GERICHTE = {
-    "Wraps": {  # Gericht mit wählbaren Modulen
-        "Basis": {"Wrap": ("Stk", 2)},  # Modul: Basis
-        "Protein": {"Falafel": ("g", 100), "Tofu": ("g", 100)},  # Modul Protein
-        "Gemüse": {"Paprika": ("Stk", 0.5), "Salat": ("g", 50), "Gurke": ("Stk", 0.25)},  # Modul Gemüse
-        "Sauce": {"Hummus": ("g", 40), "Joghurt-Sauce": ("ml", 50)}  # Modul Sauce
-    }
-}
+]
 
 # --------------------
-# UI: Personenanzahl & Gerichtstyp
+# UI: Personenanzahl
 # --------------------
-personen = st.slider("👥 Personen", 1, 6, 2)  # Slider: wähle Anzahl der Personen (1-6), Standard=2
+personen = st.slider("👥 Für wie viele Personen?", 1, 6, 2)
 
-gericht_typ = st.radio("Gerichtstyp", ["Fixes Gericht", "Modulares Gericht"])  
-# Radio-Button: wähle zwischen festen und modularen Gerichten
-
-einkaufsliste = {}  # leeres Dictionary, in dem alle Zutaten mit Menge gesammelt werden
+# Optional: Kategorie-Auswahl (z. B. Sommer, Winter)
+selected_kategorie = st.multiselect(
+    "Kategorie wählen (optional, leer = alle):",
+    options=["ganzjährig", "sommer", "winter"]
+)
 
 # --------------------
-# FUNKTION: Zutat hinzufügen
+# Funktion: Zutat zur Einkaufsliste hinzufügen
 # --------------------
-def add_zutat(name, einheit, menge):  # Funktion zum Hinzufügen einer Zutat
-    if name in einkaufsliste:  # Wenn Zutat schon drin
-        einkaufsliste[name][1] += menge  # Menge addieren
+einkaufsliste = {}
+
+def add_zutat(name, einheit, menge):
+    if name in einkaufsliste:
+        einkaufsliste[name][1] += menge  # Menge addieren, falls schon drin
     else:
-        einkaufsliste[name] = [einheit, menge]  # Neu hinzufügen
+        einkaufsliste[name] = [einheit, menge]
 
 # --------------------
-# FIXE GERICHTE
+# FILTERN: nur Gerichte nach Kategorie
 # --------------------
-if gericht_typ == "Fixes Gericht":  # Wenn Nutzer feste Gerichte wählt
-    gericht = st.selectbox("Gericht wählen", FIXE_GERICHTE.keys())  # Dropdown mit festen Gerichten
-    for zutat, (einheit, menge_pp) in FIXE_GERICHTE[gericht].items():  # Jede Zutat durchlaufen
-        add_zutat(zutat, einheit, menge_pp * personen)  # Menge anpassen für Anzahl Personen
+if selected_kategorie:
+    filtered_gerichte = [g for g in GERICHTE if any(k in g["kategorie"] for k in selected_kategorie)]
+else:
+    filtered_gerichte = GERICHTE
 
 # --------------------
-# MODULARE GERICHTE
+# ZUFÄLLIGES GERICHT AUSWÄHLEN
 # --------------------
-else:  # Wenn Nutzer modulare Gerichte wählt
-    gericht = st.selectbox("Gericht wählen", MODULARE_GERICHTE.keys())  # Dropdown mit modularen Gerichten
-    module = MODULARE_GERICHTE[gericht]  # alle Module des Gerichts holen
+gericht = random.choice(filtered_gerichte)
+st.subheader(f"🥘 Vorgeschlagenes Gericht: {gericht['name']}")
 
-    for kategorie, zutaten in module.items():  # Jede Kategorie (Basis, Protein, Gemüse, Sauce)
-        auswahl = st.multiselect(kategorie, zutaten.keys())  # Auswahlfeld: mehrere Zutaten wählbar
-        for zutat in auswahl:  # Jede gewählte Zutat
-            einheit, menge_pp = zutaten[zutat]  # Menge pro Person
-            add_zutat(zutat, einheit, menge_pp * personen)  # Menge anpassen und zur Einkaufsliste hinzufügen
+# --------------------
+# MENGE BERECHNEN & EINKAUFSLISTE ERSTELLEN
+# --------------------
+if gericht["typ"] == "fix":  # feste Zutaten
+    for zutat, (einheit, menge_pp) in gericht["zutaten"].items():
+        add_zutat(zutat, einheit, menge_pp * personen)
+else:  # modulare Zutaten: alle Module automatisch auswählen
+    # Für den Zufallsvorschlag: wir wählen pro Kategorie automatisch alles
+    for kategorie, zutaten in gericht["module"].items():
+        for zutat, (einheit, menge_pp) in zutaten.items():
+            add_zutat(zutat, einheit, menge_pp * personen)
 
 # --------------------
 # AUSGABE: Einkaufsliste
 # --------------------
-st.subheader("🛒 Einkaufsliste")  # Untertitel
-for zutat, (einheit, menge) in einkaufsliste.items():  # Durch alle Zutaten iterieren
-    st.write(f"- {zutat}: {round(menge, 2)} {einheit}")  # Zutat + Menge anzeigen, auf 2 Dezimalstellen gerundet
+st.subheader("🛒 Einkaufsliste")
+for zutat, (einheit, menge) in einkaufsliste.items():
+    st.write(f"- {zutat}: {round(menge,2)} {einheit}")
