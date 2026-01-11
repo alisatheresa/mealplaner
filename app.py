@@ -88,7 +88,7 @@ if gericht["typ"] == "fix":
     # feste Zutaten immer hinzufügen
     for zutat, (einheit, menge_pp) in gericht["zutaten"].items():
         add_zutat(zutat, einheit, menge_pp * personen)
-elseelse:
+else:
     st.write("Zutaten für dieses modulare Gericht (zufällig ausgewählt):")
     
     # feste Zutaten immer hinzufügen, falls vorhanden
