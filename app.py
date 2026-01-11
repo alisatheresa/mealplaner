@@ -1,19 +1,17 @@
-import streamlit as st # Streamlit importieren, um UI-Elemente zu erstellen
+import streamlit as st
 import random
 
-
-st.title("Persönlicher Kochplaner 🍽️")  # Titel der App im Browser anzeigen
+st.title("🍝 Persönlicher Kochplaner (Zufallsvorschlag)")
 
 # --------------------
-# DATEN: Gerichte
+# DATEN: Gerichte mit festen + variablen Zutaten + Kategorien
 # --------------------
-
 GERICHTE = [
     {
         "name": "Linsen Bolognese",
-        "typ": "fix",  # fix = feste Zutaten
-        "kategorie": ["ganzjährig"],  # Saison / Kategorie
-        "zutaten": {
+        "typ": "fix",
+        "kategorie": ["ganzjährig"],
+        "zutaten": {  # alles fest
             "Linsen": ("g", 80),
             "Passierte Tomaten": ("ml", 200),
             "Zwiebel": ("Stk", 0.5),
@@ -25,8 +23,10 @@ GERICHTE = [
         "name": "Wraps",
         "typ": "modular",
         "kategorie": ["ganzjährig", "sommer"],
-        "module": {
-            "Basis": {"Wrap": ("Stk", 2)},
+        "feste_zutaten": {  # immer dabei
+            "Wrap": ("Stk", 2)
+        },
+        "variable_zutaten": {  # Auswahl möglich
             "Protein": {"Falafel": ("g", 100), "Hähnchen": ("g", 120), "Tofu": ("g", 100)},
             "Gemüse": {"Paprika": ("Stk", 0.5), "Salat": ("g", 50), "Gurke": ("Stk", 0.25)},
             "Sauce": {"Hummus": ("g", 40), "Joghurt-Sauce": ("ml", 50)}
@@ -36,8 +36,8 @@ GERICHTE = [
         "name": "Asia Nudelpfanne",
         "typ": "modular",
         "kategorie": ["ganzjährig", "winter"],
-        "module": {
-            "Basis": {"Reisnudeln": ("g", 100)},
+        "feste_zutaten": {"Reisnudeln": ("g", 100)},  # Basis immer dabei
+        "variable_zutaten": {
             "Protein": {"Tofu": ("g", 120), "Huhn": ("g", 120)},
             "Gemüse": {"Brokkoli": ("g", 100), "Karotten": ("g", 80)},
             "Sauce": {"Sojasauce": ("ml", 30), "Erdnusssauce": ("ml", 30)}
@@ -46,11 +46,10 @@ GERICHTE = [
 ]
 
 # --------------------
-# UI: Personenanzahl
+# UI: Personenanzahl + optional Kategorie
 # --------------------
 personen = st.slider("👥 Für wie viele Personen?", 1, 6, 2)
 
-# Optional: Kategorie-Auswahl (z. B. Sommer, Winter)
 selected_kategorie = st.multiselect(
     "Kategorie wählen (optional, leer = alle):",
     options=["ganzjährig", "sommer", "winter"]
@@ -63,20 +62,20 @@ einkaufsliste = {}
 
 def add_zutat(name, einheit, menge):
     if name in einkaufsliste:
-        einkaufsliste[name][1] += menge  # Menge addieren, falls schon drin
+        einkaufsliste[name][1] += menge  # Menge summieren, falls Zutat schon drin
     else:
         einkaufsliste[name] = [einheit, menge]
 
 # --------------------
-# FILTERN: nur Gerichte nach Kategorie
+# Filtern nach Kategorie
 # --------------------
 if selected_kategorie:
-    filtered_gerichte = [g for g in GERICHTE if any(k in g["kategorie"] for k in selected_kategorie)]
+    filtered_gerichte = [g for g in GERICHTE if any(k in g.get("kategorie", []) for k in selected_kategorie)]
 else:
     filtered_gerichte = GERICHTE
 
 # --------------------
-# ZUFÄLLIGES GERICHT AUSWÄHLEN
+# Zufälliges Gericht auswählen
 # --------------------
 gericht = random.choice(filtered_gerichte)
 st.subheader(f"🥘 Vorgeschlagenes Gericht: {gericht['name']}")
@@ -120,9 +119,9 @@ else:
         
         # Anzeige der ausgewählten Zutaten
         st.write(f"{kategorie}: {', '.join(auswahl)}")
-        
+
 # --------------------
-# AUSGABE: Einkaufsliste
+# Ausgabe Einkaufsliste
 # --------------------
 st.subheader("🛒 Einkaufsliste")
 for zutat, (einheit, menge) in einkaufsliste.items():
