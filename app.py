@@ -88,14 +88,15 @@ if gericht["typ"] == "fix":
     # feste Zutaten immer hinzufügen
     for zutat, (einheit, menge_pp) in gericht["zutaten"].items():
         add_zutat(zutat, einheit, menge_pp * personen)
-else:
+elseelse:
     st.write("Zutaten für dieses modulare Gericht (zufällig ausgewählt):")
-    # feste Zutaten immer hinzufügen
-    for zutat, (einheit, menge_pp) in gericht["feste_zutaten"].items():
+    
+    # feste Zutaten immer hinzufügen, falls vorhanden
+    for zutat, (einheit, menge_pp) in gericht.get("feste_zutaten", {}).items():
         add_zutat(zutat, einheit, menge_pp * personen)
     
     # variable Zutaten: intelligente Zufallsauswahl
-    for kategorie, zutaten in gericht["variable_zutaten"].items():
+    for kategorie, zutaten in gericht.get("variable_zutaten", {}).items():
         # Anzahl der auszuwählenden Zutaten pro Kategorie festlegen
         if kategorie == "Protein":
             anzahl = 1  # 1 Protein
@@ -106,15 +107,20 @@ else:
         else:
             anzahl = 1  # Default
         
-        # zufällige Auswahl treffen
-        auswahl = random.sample(list(zutaten.keys()), k=anzahl)
+        # zufällige Auswahl treffen (nur, wenn genug Zutaten vorhanden)
+        if len(zutaten) <= anzahl:
+            auswahl = list(zutaten.keys())
+        else:
+            auswahl = random.sample(list(zutaten.keys()), k=anzahl)
         
+        # ausgewählte Zutaten hinzufügen
         for zutat in auswahl:
             einheit, menge_pp = zutaten[zutat]
             add_zutat(zutat, einheit, menge_pp * personen)
         
-        st.write(f"{kategorie}: {', '.join(auswahl)}")  # Anzeige der ausgewählten Zutaten
-
+        # Anzeige der ausgewählten Zutaten
+        st.write(f"{kategorie}: {', '.join(auswahl)}")
+        
 # --------------------
 # AUSGABE: Einkaufsliste
 # --------------------
