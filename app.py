@@ -23,7 +23,7 @@ GERICHTE = [
     },
     {
         "name": "Wraps",
-        "typ": "modular",  # modular = Zutaten aus Auswahl
+        "typ": "modular",
         "kategorie": ["ganzjährig", "sommer"],
         "module": {
             "Basis": {"Wrap": ("Stk", 2)},
